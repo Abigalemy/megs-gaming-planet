@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meng's Gaming Planet</title>
+<meta name="description" content="Small games made by Meng">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="hero wrap">
+  <h1><span>🪐</span> <b id="title"></b></h1>
+  <p id="subtitle"></p>
+</header>
+
+<main class="wrap">
+  <div class="toolbar">
+    <input class="search" id="q" type="search" placeholder="Search games..." aria-label="Search games">
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>© <span id="year"></span> Meng's Gaming Planet</footer>
+
+<script src="games.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+
+document.title = SITE.title;
+$("title").textContent = SITE.title;
+$("subtitle").textContent = SITE.subtitle;
+$("year").textContent = new Date().getFullYear();
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function render() {
+  const q = $("q").value.trim().toLowerCase();
+  const list = GAMES
+    .filter((g) => !q || (g.title + g.desc).toLowerCase().includes(q))
+    .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+  const cards = list.map((g) => {
+    const bg = g.cover
+      ? `background-image:url('${esc(g.cover)}')`
+      : `background:linear-gradient(135deg, ${g.colors?.[0] || "#ff7a59"}, ${g.colors?.[1] || "#ffb44d"})`;
+    return `<a class="card" href="${esc(g.url || `games/${g.id}/index.html`)}"${g.url ? ' target="_blank" rel="noopener"' : ""}>
+      <div class="thumb${g.cover ? " has-cover" : ""}" style="${bg}">${g.cover ? "" : esc(g.emoji || "🎲")}</div>
+      <div class="body">
+        <h2>${esc(g.title)}</h2>
+        <p>${esc(g.desc)}</p>
+        <div class="meta">${g.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}
+          <span class="date">${esc(g.date || "")}</span></div>
+      </div></a>`;
+  });
+
+  if (!list.length) cards.push(`<div class="empty">No games found</div>`);
+  else if (!q) cards.push(`<div class="card soon"><div><div class="big">🚧</div>Next game<br>coming soon...</div></div>`);
+  $("grid").innerHTML = cards.join("");
+}
+
+$("q").addEventListener("input", render);
+render();
+</script>
+</body>
+</html>
